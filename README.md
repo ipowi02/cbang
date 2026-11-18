@@ -18,8 +18,9 @@ int main() {
 }
 
 ```
-Now you may run cbang, such as `cbang main.c`, which would run the first command, which is the default, or you can do `cbang exec main.c` or `cbang build main.c` for the second and third commands respectfully.
+Now you may run cbang, such as `cbang main.c`, which would run the first command, which is the default, or you can do `cbang exec main.c` or `cbang build main.c` for the second and third commands respectfully.<br>
 
+Cbang can be built using itself which means `cbang.c` serves as another nice example.
 ### Automatic variables
 
 Cbang provides two automatic variables, `$SRC`, and `$BIN`, defined with `setenv()`.<br>
