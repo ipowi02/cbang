@@ -44,7 +44,7 @@ static char *bin(const char *src) {
      if (has_ext)
 	  *dot = '\0';
 
-     snprintf(tmp2, sizeof tmp2, "%s%s%s", has_dir ? "" : "./", tmp, has_ext ? "" : OUTPUT_EXT);
+     snprintf(tmp2, sizeof tmp2, "%s%s%s", has_dir ? "" : "./", tmp, OUTPUT_EXT);
      return tmp2;
      
      
