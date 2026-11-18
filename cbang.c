@@ -7,16 +7,49 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <ctype.h>
+#include <assert.h>
 
 #define LINELEN 1024
+#define TMPSIZE LINELEN
+
+#define OUTPUT_EXT ".o"
+static_assert(sizeof OUTPUT_EXT < 8, "too big");
+
 
 enum { DEFAULT, BUILD, EXEC, NMODES };
 static const char *mode_name[NMODES] = { "default", "build", "exec" };
 static char cmds[NMODES][LINELEN];
 
+static char tmp[TMPSIZE];
+static char tmp2[TMPSIZE + 8];
+
 static void usage(FILE *f, const char *prog) {
     fprintf(f, "USAGE: %s [build|exec] <file>\n", prog);
 }
+
+static char *bin(const char *src) {
+     snprintf(tmp, sizeof tmp, "%s", src);
+
+     char *base = strrchr(tmp, '/');
+     if (base)
+	  base++;
+     else
+	  base = tmp;
+     
+     char *dot = strrchr(base, '.');
+     
+     int has_dir = base != tmp;
+     int has_ext = dot && dot > base;
+     
+     if (has_ext)
+	  *dot = '\0';
+
+     snprintf(tmp2, sizeof tmp2, "%s%s%s", has_dir ? "" : "./", tmp, has_ext ? "" : OUTPUT_EXT);
+     return tmp2;
+     
+     
+}
+
 
 // Returns 0 if the line is fine (directive or not), -1 if it is a malformed directive.
 static int parse_line(const char *line) {
@@ -58,6 +91,9 @@ int main(int argc, char **argv) {
     }
     const char *path = argv[i];
 
+    // dont wanna handle memory management
+    assert(strlen(path) < 64);
+    
     FILE *f = fopen(path, "r");
     if (!f) {
         perror(path);
@@ -81,7 +117,7 @@ int main(int argc, char **argv) {
 
     // this is so you can use $SRC as part of the command 
     setenv("SRC", path, 1);
-
+    setenv("BIN", bin(path), 1);
     
     fprintf(stderr, "+ %s\n", cmd);
     int rc = system(cmd);
