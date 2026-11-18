@@ -18,7 +18,8 @@
 	  return (code);				\
      } while (0)
 
-static char output_ext[16] = ".o";
+#define OUTPUT_EXT ".o"
+static char output_ext[16] = OUTPUT_EXT;
 
 enum { DEFAULT, BUILD, EXEC, NMODES };
 static const char *mode_name[NMODES] = { "default", "build", "exec" };
