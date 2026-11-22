@@ -9,6 +9,10 @@
 #include <ctype.h>
 #include <assert.h>
 
+#include <unistd.h>
+
+
+
 #define LINELEN 1024
 #define TMPSIZE LINELEN
 
@@ -31,6 +35,13 @@ static char tmp2[TMPSIZE + 8];
 static void usage(FILE *f, const char *prog) {
      fprintf(f, "USAGE: %s [build|exec] <file>\n", prog);
 }
+
+struct flag {
+     const char name[16];
+     unsigned parsed : 1;
+     
+};
+
 
 static char *bin(const char *src) {
      snprintf(tmp, sizeof tmp, "%s", src);
@@ -81,6 +92,14 @@ static int parse_line(const char *line) {
 }
 
 int main(int argc, char **argv) {
+
+     char *sh_argv[argc + 5];
+     sh_argv[0] = "sh";
+     sh_argv[1] = "-c";
+     // sh_argv[2] = cmd;  later
+     sh_argv[3] = "cbang";          // $0
+     int sh_argc = 4;                   // slots 0-3 are reserved for sh, -c, cmd, $0
+  
      int awaiting_file = 0;
      int parsed_ext = 0;
      int mode = DEFAULT;
@@ -89,6 +108,13 @@ int main(int argc, char **argv) {
 
      for (int i = 1; i < argc; i++) {
 	  char *arg = argv[i];
+
+	  if (strcmp(arg, "--") == 0) {
+	       while (++i < argc)
+		    sh_argv[sh_argc++] = argv[i];
+	       break;
+	  }
+	  
 	  // We might want to refactor this once we have more flags
 	  
 	  if (strncmp(arg, "--ext", 5) == 0) {
@@ -162,11 +188,13 @@ int main(int argc, char **argv) {
      setenv("SRC", path, 1);
      setenv("BIN", bin(path), 1);
     
+     
      fprintf(stderr, "+ %s\n", cmd);
-     int rc = system(cmd);
-     if (rc == -1) {
-	  perror("system");
-	  return 1;
-     }
-     return WIFEXITED(rc) ? WEXITSTATUS(rc) : 1;
+
+     sh_argv[2] = cmd;
+     sh_argv[sh_argc] = NULL;
+
+     execv("/bin/sh", sh_argv);
+     perror("execv");
+     return 1;
 }
